@@ -1,10 +1,11 @@
 import logging
 import os
-
+import time
 import pandas as pd
 import requests
+import random
 from tenacity import (
-    before_log,
+    before_sleep_log,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
@@ -20,7 +21,8 @@ MAX_ATTEMPTS = 5
 
 
 @retry(
-    before=before_log(_logger, logging.DEBUG),
+    before_sleep=before_sleep_log(_logger, logging.WARNING),
+    reraise=True,
     wait=wait_random(MIN_WAIT_TIME, MAX_WAIT_TIME),
     stop=stop_after_attempt(MAX_ATTEMPTS),
     retry=retry_if_exception_type(requests.RequestException),
@@ -38,6 +40,11 @@ def send_request(session: requests.Session, **kwargs) -> requests.Response:
     """
     response = session.request(**kwargs)
     response.raise_for_status()
+    
+    sleep_time = random.uniform(MIN_WAIT_TIME, MAX_WAIT_TIME) 
+    _logger.debug("Sleeping for %s seconds...", sleep_time)
+    time.sleep(sleep_time)
+
     return response
 
 
