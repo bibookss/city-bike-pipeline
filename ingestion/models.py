@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class JobParameters(BaseModel):
     country: Optional[str] = Field(default="all")
-    city: Optional[str]
+    city: Optional[str] = None
     staging_path: str
     logconf_path: str
 
