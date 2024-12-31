@@ -40,12 +40,12 @@ def main(params: JobParameters):
 
     networks_file_path = os.path.join(params.staging_path, "networks.db")
     save_to_duckdb(
-        db_file_path=networks_file_path, df=networks_df, table_name="staging.networks"
+        db_file_path=networks_file_path, df=networks_df, table_name="networks"
     )
 
     stations_file_path = os.path.join(params.staging_path, "stations.db")
     save_to_duckdb(
-        db_file_path=stations_file_path, df=stations_df, table_name="staging.stations"
+        db_file_path=stations_file_path, df=stations_df, table_name="stations"
     )
 
     _logger.info("Ingestion done!")
