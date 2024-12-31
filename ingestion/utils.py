@@ -1,9 +1,10 @@
 import logging
 import os
+import random
 import time
+
 import pandas as pd
 import requests
-import random
 from tenacity import (
     before_sleep_log,
     retry,
@@ -40,8 +41,8 @@ def send_request(session: requests.Session, **kwargs) -> requests.Response:
     """
     response = session.request(**kwargs)
     response.raise_for_status()
-    
-    sleep_time = random.uniform(MIN_WAIT_TIME, MAX_WAIT_TIME) 
+
+    sleep_time = random.uniform(MIN_WAIT_TIME, MAX_WAIT_TIME)
     _logger.debug("Sleeping for %s seconds...", sleep_time)
     time.sleep(sleep_time)
 

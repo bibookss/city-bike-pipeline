@@ -1,5 +1,7 @@
 import logging.config
 import os
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import fire
 import pandas as pd
@@ -26,10 +28,14 @@ def main(params: JobParameters):
 
     city_bike = CityBike()
     networks_df = city_bike.get_networks(country=params.country, city=params.city)
+    networks_df["update_time"] = datetime.now(tz=params.timezone)
 
     stations = []
     for _, station in networks_df.iterrows():
         network_stations = city_bike.get_stations(id=station["id"])
+        network_stations = network_stations["update_time"] = datetime.now(
+            tz=params.timezone
+        )
         stations.append(network_stations)
     stations_df = pd.concat(stations)
 

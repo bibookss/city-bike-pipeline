@@ -1,13 +1,24 @@
 from datetime import datetime
 from typing import List, Optional
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
+
 
 class JobParameters(BaseModel):
     country: Optional[str] = Field(default="all")
-    city: Optional[str] = None
+    city: Optional[str] = Field(default=None)
+    timezone: ZoneInfo
     staging_path: str
     logconf_path: str
+
+    @validator("timezone", pre=True)
+    def convert_to_zoneinfo(cls, value):
+        try:
+            return ZoneInfo(value) if isinstance(value, str) else value
+        except ZoneInfoNotFoundError:
+            raise ValueError(f"Invalid timezone: {value}")
+
 
 # class Location(BaseModel):
 #     latitude: float
@@ -49,5 +60,3 @@ class JobParameters(BaseModel):
 #     name: str
 #     location: Location
 #     company: List[str]
-
-
