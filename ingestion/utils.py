@@ -9,9 +9,9 @@ from tenacity import (
     wait_random,
 )
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger("ingestion")
 
-# Retry mechanism
+# Constants for retry behavior
 MIN_WAIT_TIME = 1
 MAX_WAIT_TIME = 5
 MAX_ATTEMPTS = 5

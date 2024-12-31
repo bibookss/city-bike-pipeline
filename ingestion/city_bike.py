@@ -1,12 +1,11 @@
 import logging
 
 import requests
-from pydantic import ValidationError, parse_obj_as
-
-from ingestion.models import Network, Station
+import pandas as pd
 from ingestion.utils import send_request
 
-_logger = logging.getLogger(__name__)
+# Logger setup
+_logger = logging.getLogger("ingestion")
 
 # API endpoints and fields for requests
 NETWORKS_URL = "http://api.citybik.es/v2/networks"
@@ -20,8 +19,8 @@ class CityBike:
     Wrapper for interacting with the CityBike API (https://api.citybik.es/).
 
     This class provides methods to fetch bike network information and stations
-    from the CityBike API. The data is parsed into Pydantic models for easier
-    handling and validation.
+    from the CityBike API. The data is returned as Pandas DataFrames for easy
+    manipulation and analysis.
 
     Attributes:
         session (requests.Session): The session object used for making HTTP requests.
@@ -35,19 +34,21 @@ class CityBike:
         """
         self.session = requests.Session()
 
-    def get_networks(self) -> list[Network]:
+    def get_networks(self) -> pd.DataFrame:
         """
         Fetches a list of bike networks from the CityBike API.
 
         This method sends a GET request to the CityBike API to retrieve a list of
-        available bike-sharing networks. It then parses the response into a list of
-        `Network` objects using Pydantic's `parse_obj_as`.
+        available bike-sharing networks. It then parses the response into a Pandas DataFrame
+        containing the network data. The DataFrame includes the fields specified in `NETWORKS_FIELDS`
+        such as network ID, name, location, and company.
 
         Returns:
-            list[Network]: A list of `Network` objects representing bike-sharing networks.
+            pd.DataFrame: A DataFrame containing the bike network data.
 
         Raises:
-            ValidationError: If the response cannot be parsed into valid `Network` objects.
+            requests.RequestException: If there is an issue with the HTTP request.
+            ValueError: If the response does not contain the expected data.
         """
         _logger.info("Getting networks...")
         fields = ",".join(NETWORKS_FIELDS)
@@ -58,30 +59,30 @@ class CityBike:
             params={"fields": fields},
         ).json()
 
-        try:
-            networks = parse_obj_as(list[Network], response["networks"])
-            return networks
-        except ValidationError as e:
-            _logger.error("Failed validating networks: %s", e.errors())
-            raise
+        if "networks" not in response:
+            _logger.error("Error: Missing 'networks' in the API response.")
+            raise ValueError("Missing 'networks' in the API response.")
+        
+        return pd.DataFrame(response["networks"])
 
-    def get_stations(self, id: str) -> list[Station]:
+    def get_stations(self, id: str) -> pd.DataFrame:
         """
         Fetches a list of stations for a specific bike network from the CityBike API.
 
         This method sends a GET request to the CityBike API using a network `id` to retrieve
-        the list of stations in that network. Each station is augmented with the `network_id`
-        to associate it with the appropriate network. The response is then parsed into a list of
-        `Station` objects using Pydantic's `parse_obj_as`.
+        the list of stations in that network. The stations are then augmented with the `network_id`
+        to associate them with the correct network. The data is returned as a Pandas DataFrame containing
+        the station information.
 
         Args:
             id (str): The ID of the bike network for which stations are to be fetched.
 
         Returns:
-            list[Station]: A list of `Station` objects representing the stations in the network.
+            pd.DataFrame: A DataFrame containing the stations' data for the given network.
 
         Raises:
-            ValidationError: If the response cannot be parsed into valid `Station` objects.
+            requests.RequestException: If there is an issue with the HTTP request.
+            ValueError: If the response does not contain the expected station data.
         """
         _logger.info("Getting stations from network with id %s", id)
         fields = ",".join(STATIONS_FIELDS)
@@ -92,15 +93,10 @@ class CityBike:
             params={"fields": fields},
         ).json()
 
-        stations_with_id = []
-        for station in response["network"]["stations"]:
-            station["network_id"] = id  # Adding network_id to the station
-            stations_with_id.append(station)
-
-        try:
-            stations = parse_obj_as(list[Station], stations_with_id)
-            return stations
-        except ValidationError as e:
-            _logger.error("Failed validating stations: %s", e.errors())
-            _logger.error("Invalid stations data: %s", stations_with_id)
-            raise
+        if "network" not in response or "stations" not in response["network"]:
+            _logger.error("Error: Missing 'stations' in the API response for network ID %s", id)
+            raise ValueError(f"Missing 'stations' for network ID {id} in the API response.")
+        
+        df = pd.DataFrame(response["network"]["stations"])
+        df["network_id"] = id
+        return df
