@@ -1,34 +1,35 @@
 [loggers]
-keys=root,ingestion
+keys = root, ingestion
 
 [handlers]
-keys=consoleHandler,fileHandler
+keys = console, file
 
 [formatters]
-keys=defaultFormatter
+keys = normal
 
 [logger_root]
-level=INFO
-handlers=consoleHandler,fileHandler
+level = DEBUG
+handlers = file, console
 
 [logger_ingestion]
-level=INFO
-handlers=consoleHandler,fileHandler
+level=DEBUG
 qualname=ingestion
+handlers= file, console
 propagate=0
 
-[handler_consoleHandler]
-class=StreamHandler
-level=INFO
-formatter=defaultFormatter
-args=(sys.stdout,)
+[handler_file]
+class = logging.handlers.RotatingFileHandler
+level = DEBUG
+formatter = normal
+args = ('./logs/ingestion.log', 'a', 1024*1024*1024*2, 10)
 
-[handler_fileHandler]
-class=FileHandler
-level=INFO
-formatter=defaultFormatter
-args=('logs/ingestion.log', 'a')
+[handler_console]
+class = StreamHandler
+level = DEBUG
+formatter = normal
+args = (sys.stdout,)
 
-[formatter_defaultFormatter]
-format=%(asctime)s - %(name)s - %(levelname)s - %(message)s
-datefmt=%Y-%m-%d %H:%M:%S
+[formatter_normal]
+format = %(levelname)-10.10s %(asctime)s [%(name)s][%(module)s:%(lineno)d] %(message)s
+datefmt = %Y-%m-%d %H:%M:%S
+
