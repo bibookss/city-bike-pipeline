@@ -1,14 +1,13 @@
 import logging.config
 import os
 from datetime import datetime
-from zoneinfo import ZoneInfo
 
 import fire
 import pandas as pd
 
 from ingestion.city_bike import CityBike
 from ingestion.models import JobParameters
-from ingestion.utils import save_file
+from ingestion.utils import save_to_duckdb
 
 
 def main(params: JobParameters):
@@ -33,17 +32,22 @@ def main(params: JobParameters):
     stations = []
     for _, station in networks_df.iterrows():
         network_stations = city_bike.get_stations(id=station["id"])
-        network_stations = network_stations["update_time"] = datetime.now(
+        network_stations["update_time"]  = datetime.now(
             tz=params.timezone
         )
         stations.append(network_stations)
     stations_df = pd.concat(stations)
 
-    networks_file_path = os.path.join(params.staging_path, "networks.csv")
-    save_file(networks_df, networks_file_path)
+    networks_file_path = os.path.join(params.staging_path, "networks.db")
+    save_to_duckdb(
+        db_file_path=networks_file_path, df=networks_df, table_name="staging.networks"
+    )
 
-    stations_file_path = os.path.join(params.staging_path, "stations.csv")
-    save_file(stations_df, stations_file_path)
+    stations_file_path = os.path.join(params.staging_path, "stations.db")
+    save_to_duckdb(
+        db_file_path=stations_file_path, df=stations_df, table_name="staging.stations"
+    )
+
     _logger.info("Ingestion done!")
 
 

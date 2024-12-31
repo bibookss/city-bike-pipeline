@@ -3,6 +3,7 @@ import os
 import random
 import time
 
+import duckdb
 import pandas as pd
 import requests
 from tenacity import (
@@ -32,8 +33,8 @@ def send_request(session: requests.Session, **kwargs) -> requests.Response:
     """
     Sends an HTTP request using the provided session, with automatic retries on failure.
 
-    :param session: The `requests` session object used to send the HTTP request.
-    :param kwargs: The parameters to be passed to the `session.request()` method, such as `url`, `method`, `params`, etc.
+    :param requests.Session session: The `requests` session object used to send the HTTP request.
+    :param **kwargs: The parameters to be passed to the `session.request()` method, such as `url`, `method`, `params`, etc.
     :return: The HTTP response object returned by the `session.request()` method.
     :rtype: requests.Response
     :raises requests.RequestException: If the request fails after the maximum number of retry attempts,
@@ -49,26 +50,11 @@ def send_request(session: requests.Session, **kwargs) -> requests.Response:
     return response
 
 
-def save_file(df: pd.DataFrame, file_path: str) -> None:
-    """
-    Saves a DataFrame to a specified file path in CSV format.
-
-    :param df: The DataFrame to be saved.
-    :param file_path: The file path where the DataFrame should be saved.
-    :return: None
-    :rtype: None
-    """
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    _logger.info("Saving %s rows and %s columns to %s", *df.shape, file_path)
-    df.to_csv(file_path, sep="|", index=None)
-    _logger.info("Data saved successfully to %s", file_path)
-
-
 def flatten_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
     Flattens a DataFrame by expanding columns with lists or dictionaries.
 
-    :param df: The DataFrame to be flattened.
+    :param pd.DataFrame df: The DataFrame to be flattened.
     :return: A new DataFrame with flattened columns.
     :rtype: pd.DataFrame
     """
@@ -91,3 +77,19 @@ def flatten_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             columns_to_check.extend(dict_df.columns.tolist())
 
     return df
+
+
+def save_to_duckdb(db_file_path: str, df: pd.DataFrame, table_name: str) -> None:
+    """
+    Saves a DataFrame to a DuckDB database
+
+    :param pd.DataFrame df: The DataFrame to be saved.
+    :param db_file_path: The file path where the database should be saved.
+    :param str table_name: The name of the table to save the data
+    """
+    os.makedirs(os.path.dirname(db_file_path), exist_ok=True)
+    conn = duckdb.connect(db_file_path)
+    _logger.info("Saving %s rows and %s columns to %s", *df.shape, table_name)
+    conn.execute(f"CREATE TABLE IF NOT EXISTS {table_name} AS SELECT * FROM df")
+    conn.close()
+    _logger.info("Data saved successfully to %s", table_name)

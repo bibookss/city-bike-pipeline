@@ -34,8 +34,8 @@ class CityBike:
         """
         Fetches bike networks from the CityBike API and flattens the `location` column.
 
-        :param country: The country to filter networks by.
-        :param city: The city to filter networks by.
+        :param str country: The country to filter networks by.
+        :param str city: The city to filter networks by.
         :return: A DataFrame containing bike network data with flattened location.
         :rtype: pd.DataFrame
         :raises requests.RequestException: If there is an HTTP request issue.
@@ -75,7 +75,7 @@ class CityBike:
         """
         Fetches stations for a specific bike network and flattens the `extra` column.
 
-        :param id: The ID of the bike network to fetch stations for.
+        :param str id: The ID of the bike network to fetch stations for.
         :return: A DataFrame with station data, including flattened 'location' and 'extra' columns.
         :rtype: pd.DataFrame
         :raises requests.RequestException: If the HTTP request fails.
