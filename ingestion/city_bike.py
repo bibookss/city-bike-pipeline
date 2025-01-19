@@ -1,27 +1,56 @@
 import logging
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
 
-import pandas as pd
 import requests
 
-from ingestion.utils import flatten_dataframe, send_request
+from ingestion.utils import send_request
 
-_logger = logging.getLogger("ingestion")
-
-# API endpoints and fields for requests
 NETWORKS_URL = "http://api.citybik.es/v2/networks"
 NETWORKS_FIELDS = ["id", "name", "location", "company"]
 STATIONS_URL_TEMPLATE = "http://api.citybik.es/v2/networks/{id}"
 STATIONS_FIELDS = ["id", "stations"]
 
 
+@dataclass
+class Network:
+    id: str
+    name: str
+    latitude: float
+    longitude: float
+    city: str
+    country: str
+    company: list[str]
+
+
+@dataclass
+class Station:
+    id: str
+    network_id: str
+    timestamp: datetime
+    name: str
+    latitude: float
+    longitude: float
+    is_renting: bool
+    is_returning: bool
+    last_updated_s: int
+    address: Optional[str]
+    post_code: str
+    payment: list[str]
+    has_payment_terminal: bool
+    altitude: Optional[float]
+    slots: int
+    has_ebikes: bool
+    num_ebikes: bool
+
+
+_logger = logging.getLogger("ingestion")
+
+
 class CityBike:
     """
     Wrapper for interacting with the CityBike API (https://api.citybik.es/).
-
-    Provides methods to fetch bike network information and stations from the API.
-    Data is returned as Pandas DataFrames.
-
-    :param session: The session object used for HTTP requests.
     """
 
     def __init__(self):
@@ -30,14 +59,12 @@ class CityBike:
         """
         self.session = requests.Session()
 
-    def get_networks(self, country: str, city: str) -> pd.DataFrame:
+    def get_networks(self) -> list[Network]:
         """
-        Fetches bike networks from the CityBike API and flattens the `location` column.
+        Fetches bike networks from the CityBike API
 
-        :param str country: The country to filter networks by.
-        :param str city: The city to filter networks by.
-        :return: A DataFrame containing bike network data with flattened location.
-        :rtype: pd.DataFrame
+        :return: A list containing network data
+        :rtype: list[Network]
         :raises requests.RequestException: If there is an HTTP request issue.
         :raises ValueError: If the API response is missing expected data.
         """
@@ -54,31 +81,29 @@ class CityBike:
             _logger.error("Error: Missing 'networks' in the API response.")
             raise ValueError("Missing 'networks' in the API response.")
 
-        networks_df = pd.DataFrame(response["networks"])
-        networks_df = flatten_dataframe(networks_df)
-
-        if country:
-            country_filter = networks_df["location_country"] == country
-            networks_df.where(country_filter, inplace=True)
-
-        if city:
-            city_filter = (
-                networks_df["location_city"].str.replace(" ", "").str.replace(",", "-")
-                == city
+        networks = []
+        for network in response["networks"]:
+            _network = Network(
+                id=network["id"],
+                name=network["name"],
+                latitude=network["location"]["latitude"],
+                longitude=network["location"]["longitude"],
+                country=network["location"]["country"],
+                city=network["location"]["city"],
+                company=network["company"],
             )
-            networks_df.where(city_filter, inplace=True)
+            networks.append(_network)
 
-        networks_df = networks_df.dropna()
-        return networks_df
+        return networks
 
-    def get_stations(self, id: str) -> pd.DataFrame:
+    def get_stations_by_network_id(self, id: str) -> list[Station]:
         """
-        Fetches stations for a specific bike network and flattens the `extra` column.
+        Fetches stations for a specific bike network.
 
-        :param str id: The ID of the bike network to fetch stations for.
-        :return: A DataFrame with station data, including flattened 'location' and 'extra' columns.
-        :rtype: pd.DataFrame
-        :raises requests.RequestException: If the HTTP request fails.
+        :param id: The ID of the bike network to fetch stations for.
+        :return: A list containing station data
+        :rtype: list[Station]
+        :raises requests.RequestException: If there is an HTTP request issue.
         :raises ValueError: If the API response is missing expected data.
         """
         _logger.info("Getting stations from network with id %s", id)
@@ -98,8 +123,29 @@ class CityBike:
                 f"Missing 'stations' for network ID {id} in the API response."
             )
 
-        stations_df = pd.DataFrame(response["network"]["stations"])
-        stations_df = flatten_dataframe(stations_df)
+        stations = []
+        for station in response["network"]["stations"]:
+            _station = Station(
+                id=station["id"],
+                network_id=id,
+                timestamp=datetime.strptime(
+                    station["timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                ),
+                name=station["name"],
+                latitude=station["latitude"],
+                longitude=station["longitude"],
+                is_renting=bool(station["extra"]["renting"]),
+                is_returning=bool(station["extra"]["returning"]),
+                last_updated_s=station["extra"]["last_updated"],
+                address=station["extra"].get("address"),
+                post_code=station["extra"].get("post_code"),
+                payment=station["extra"]["payment"],
+                has_payment_terminal=station["extra"]["payment-terminal"],
+                altitude=station["extra"].get("altitude"),
+                slots=station["extra"]["slots"],
+                has_ebikes=station["extra"].get("has_ebikes"),
+                num_ebikes=station["extra"].get("ebikes"),
+            )
+            stations.append(_station)
 
-        stations_df["network_id"] = id
-        return stations_df
+        return stations
