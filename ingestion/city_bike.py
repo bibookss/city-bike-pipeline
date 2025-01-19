@@ -1,7 +1,6 @@
 import logging
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 import requests
 
@@ -35,11 +34,11 @@ class Station:
     is_renting: bool
     is_returning: bool
     last_updated_s: int
-    address: Optional[str]
+    address: str | None 
     post_code: str
     payment: list[str]
     has_payment_terminal: bool
-    altitude: Optional[float]
+    altitude: float | None 
     slots: int
     has_ebikes: bool
     num_ebikes: bool
