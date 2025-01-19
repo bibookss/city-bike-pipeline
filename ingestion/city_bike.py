@@ -34,11 +34,11 @@ class Station:
     is_renting: bool
     is_returning: bool
     last_updated_s: int
-    address: str | None 
+    address: str | None
     post_code: str
     payment: list[str]
     has_payment_terminal: bool
-    altitude: float | None 
+    altitude: float | None
     slots: int
     has_ebikes: bool
     num_ebikes: bool
