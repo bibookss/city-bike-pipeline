@@ -3,6 +3,7 @@ format:
 	uv run ruff format
 
 ingest:
+	mkdir -p ./logs && touch ./logs/ingestion.log && \
 	uv run python3 -m ingestion.pipeline \
 		--country=US \
 		--city=NewYork-NY \
