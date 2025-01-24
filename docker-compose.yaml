@@ -1,0 +1,27 @@
+services:
+  pgdatabase:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=city_bike
+    volumes:
+      - ${PWD}/postgress:/var/lib/postgresql/data /var/lib/pgadmin/var/lib/pgadmin
+    ports:
+      - 5433:5432
+    networks:
+      - city_bike_network
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=root
+    volumes:
+      - ${PWD}/pgadmin:/var/lib/pgadmin/var/lib/pgadmin
+    ports:
+      - 8080:80
+    networks:
+      - city_bike_network
+networks:
+  city_bike_network:
+    name: city_bike_network
