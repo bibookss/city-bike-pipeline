@@ -77,7 +77,7 @@ def main(params: JobParameters):
     _logger.info("Creating stations table...")
     create_stations_table_query = """
         CREATE TABLE IF NOT EXISTS stations (
-            id VARCHAR PRIMARY KEY,
+            id VARCHAR NOT NULL,
             network_id VARCHAR NOT NULL,
             timestamp TIMESTAMP NOT NULL,
             name VARCHAR NOT NULL,
@@ -94,6 +94,7 @@ def main(params: JobParameters):
             slots INT NOT NULL,
             has_ebikes BOOLEAN NOT NULL,
             num_ebikes INT,
+            PRIMARY KEY (id, timestamp),
             FOREIGN KEY (network_id) REFERENCES networks(id)
         );
     """
@@ -124,7 +125,7 @@ def main(params: JobParameters):
                                 is_renting, is_returning, last_updated_s, address, post_code, 
                                 payment, has_payment_terminal, altitude, slots, has_ebikes, num_ebikes)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (id) DO NOTHING;  
+            ON CONFLICT (id, timestamp) DO NOTHING;  
         """
         cursor.execute(
             query,
