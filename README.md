@@ -52,6 +52,7 @@ Ensure that the `docker-compose.yml` file includes the following configurations:
 - **Airflow Webserver and Scheduler**:
   - Runs Airflow web UI and scheduler.
   - Connects to a PostgreSQL database for metadata storage.
+  - Edit the default user in [entrypoint.sh](airflow/entrypoint.sh)
   
 - **PostgreSQL Database**:
   - Stores the City Bike data.
