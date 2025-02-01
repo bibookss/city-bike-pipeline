@@ -11,6 +11,7 @@ services:
       - 5433:5432
     networks:
       - city_bike_network
+
   pgadmin:
     image: dpage/pgadmin4
     environment:
@@ -22,6 +23,7 @@ services:
       - 8080:80
     networks:
       - city_bike_network
+
 networks:
   city_bike_network:
     name: city_bike_network
