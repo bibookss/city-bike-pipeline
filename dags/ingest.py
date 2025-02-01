@@ -14,7 +14,7 @@ dag = DAG(
     "city_bike_ingestion",
     default_args=default_args,
     description="DAG for City Bike Data Ingestion",
-    schedule_interval=None,
+    schedule_interval="*/5 * * * *",
     catchup=False,
 )
 

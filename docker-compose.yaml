@@ -32,7 +32,7 @@ services:
       - AIRFLOW_HOME=/opt/airflow
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@pgdatabase:5432/city_bike
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__CORE__LOAD_EXAMPLES=True
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
@@ -54,7 +54,7 @@ services:
       - AIRFLOW_HOME=/opt/airflow
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@pgdatabase:5432/city_bike
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__CORE__LOAD_EXAMPLES=True
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
