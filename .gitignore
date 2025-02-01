@@ -173,5 +173,5 @@ cython_debug/
 # Ruff
 .ruff_cache
 
-# Staging
-/staging
+# Logs
+logs/
