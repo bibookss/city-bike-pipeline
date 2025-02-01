@@ -175,3 +175,8 @@ cython_debug/
 
 # Logs
 logs/
+
+# Docker mounts
+city_bike/
+pgadmin/
+postgres/

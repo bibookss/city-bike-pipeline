@@ -7,7 +7,6 @@ COPY airflow/entrypoint.sh /entrypoint.sh
 
 USER root
 
-RUN apt-get update && apt-get install -y docker.io
 RUN chmod +x /entrypoint.sh
 
 USER airflow
