@@ -6,7 +6,7 @@ services:
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=city_bike
     volumes:
-      - ${PWD}/postgress:/var/lib/postgresql/data /var/lib/pgadmin/var/lib/pgadmin
+      - ${PWD}/postgress:/var/lib/postgresql/data
     ports:
       - 5433:5432
     networks:
@@ -18,7 +18,7 @@ services:
       - PGADMIN_DEFAULT_EMAIL=admin@admin.com
       - PGADMIN_DEFAULT_PASSWORD=root
     volumes:
-      - ${PWD}/pgadmin:/var/lib/pgadmin/var/lib/pgadmin
+      - ${PWD}/pgadmin:/var/lib/pgadmin
     ports:
       - 8080:80
     networks:
