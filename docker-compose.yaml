@@ -23,6 +23,46 @@ services:
       - 8080:80
     networks:
       - city_bike_network
+  
+  webserver:
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile  
+    environment:
+      - AIRFLOW_HOME=/opt/airflow
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@pgdatabase:5432/city_bike
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=True
+    volumes:
+      - ./dags:/opt/airflow/dags
+      # - ./airkflow_logs:/opt/airflow/logs
+    ports:
+      - "8081:8080"
+    entrypoint: /entrypoint.sh
+    command: webserver
+    depends_on:
+    - pgdatabase
+    networks:
+    - city_bike_network
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile  
+    environment:
+      - AIRFLOW_HOME=/opt/airflow
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://root:root@pgdatabase:5432/city_bike
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=True
+    volumes:
+      - ./dags:/opt/airflow/dags
+      # - ./airflow_logs:/opt/airflow/logs
+    entrypoint: /entrypoint.sh
+    command: scheduler
+    depends_on:
+      - pgdatabase
+    networks:
+      - city_bike_network
 
 networks:
   city_bike_network:
