@@ -7,11 +7,13 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=ghcr.io/astral-sh/uv:0.5.21 /uv /uvx /bin/
 
-COPY . /app
-
 WORKDIR /app
+
+COPY ingestion /app/ingestion
+COPY config/ingestion.logconf /app/config/
+COPY pyproject.toml uv.lock /app/
 
 RUN mkdir logs && touch ingestion.log
 RUN uv sync --frozen
 
-ENTRYPOINT ["uv", "run", "python3", "-m", "ingestion.pipeline"]
+ENTRYPOINT ["uv", "run", "-m", "ingestion.pipeline"]

@@ -4,7 +4,7 @@ format:
 
 ingest:
 	mkdir -p ./logs && touch ./logs/ingestion.log && \
-	uv run python3 -m ingestion.pipeline \
+	uv run -m ingestion.pipeline \
 		--country=US \
 		--city="New York, NY" \
 		--staging_path=staging \
@@ -16,7 +16,10 @@ ingest:
 		--db_port=5433 \
 
 ingest_docker:
-	docker run -it \
+	if ! docker image inspect city_bike_ingest > /dev/null 2>&1; then \
+		docker build -t city_bike_ingest -f ingestion/Dockerfile .; \
+	fi && \
+	docker run --rm -it \
 		--network=city_bike_network \
 		city_bike_ingest \
 		--country=US \
